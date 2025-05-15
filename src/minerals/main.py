@@ -17,7 +17,7 @@ if __name__ == "__main__":
         "Calculated Density": 2.33,
         "Refractive Index": 3.42,
         "Mohs Hardness": 7,
-        "Optical": 1
+        "Optical": 1,
     }
     pred = predict(sample)
     print("Predicted crystal structure:", pred[0])

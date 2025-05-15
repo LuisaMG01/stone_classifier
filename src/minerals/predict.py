@@ -1,8 +1,13 @@
 import pandas as pd
 import joblib
-from preprocess import preprocess_data, load_chemical_group_mapping
+from src.minerals.preprocess import preprocess_data, load_chemical_group_mapping
 
-def predict(input_data, model_path='model/crystal_model.pkl', reference_data_path='data/minerals/minerals.csv'):
+
+def predict(
+    input_data,
+    model_path="model/crystal_model.pkl",
+    reference_data_path="data/minerals/minerals.csv",
+):
 
     model = joblib.load(model_path)
 
@@ -14,9 +19,9 @@ def predict(input_data, model_path='model/crystal_model.pkl', reference_data_pat
         raise ValueError("input_data debe ser un dict, lista de dicts o un DataFrame.")
 
     chemical_map = load_chemical_group_mapping()
-    input_data['Chemical Group'] = input_data['Element'].map(chemical_map)
+    input_data["Chemical Group"] = input_data["Element"].map(chemical_map)
 
-    input_data = pd.get_dummies(input_data, columns=['Chemical Group'], drop_first=True)
+    input_data = pd.get_dummies(input_data, columns=["Chemical Group"], drop_first=True)
 
     reference_df = pd.read_csv(reference_data_path)
     X_train, _ = preprocess_data(reference_df)
