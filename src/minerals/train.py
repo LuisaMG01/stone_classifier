@@ -12,13 +12,18 @@ def train_model(data_path='data/minerals/minerals.csv', model_path='model/crysta
     element_columns = list(chemical_group_map.keys())
 
     df['Element'] = df[element_columns].apply(lambda row: get_main_element(row, element_columns), axis=1)
-    df['Chemical Group'] = df['Element'].map(chemical_group_map) 
 
-    group_counts = df['Chemical Group'].value_counts()
-    rare_groups = group_counts[group_counts < 20].index
-    df['Chemical Group'] = df['Chemical Group'].apply(lambda x: 'Rare' if x in rare_groups else x)
+    df['Chemical Group'] = df['Element'].map(chemical_group_map)
 
     df = df[~df['Chemical Group'].isin(['Alkaline Earth Metal', 'Transition Metal'])]
+
+    group_counts = df['Chemical Group'].value_counts()
+    rare_groups = group_counts[group_counts < 10].index
+    df['Chemical Group'] = df['Chemical Group'].apply(lambda x: 'Rare' if x in rare_groups else x)
+
+    df_nonmetal = df[df['Chemical Group'] == 'Nonmetal'].sample(n=300, random_state=42)
+    df_rest = df[df['Chemical Group'] != 'Nonmetal']
+    df = pd.concat([df_nonmetal, df_rest], ignore_index=True)
 
     df = filter_classes(df, target_col='Chemical Group', min_samples=10)
 
@@ -29,7 +34,6 @@ def train_model(data_path='data/minerals/minerals.csv', model_path='model/crysta
     )
 
     min_class_size = y_train.value_counts().min()
-
     if min_class_size > 1:
         k_neighbors = min(5, min_class_size - 1)
         print(f"Using SMOTE with k_neighbors={k_neighbors}")
@@ -45,4 +49,3 @@ def train_model(data_path='data/minerals/minerals.csv', model_path='model/crysta
     print(f"Model saved at {model_path}")
 
     return X_test, y_test, model
-

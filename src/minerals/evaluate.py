@@ -14,5 +14,3 @@ def evaluate_model(model, X_test, y_test):
 
 class_names = ['Alkali Metal', 'Alkaline Earth Metal', 'Anion', 'Halogen', 'Metalloid', 
                'Noble Gas', 'Nonmetal', 'Other', 'Transition Metal']
-
-
