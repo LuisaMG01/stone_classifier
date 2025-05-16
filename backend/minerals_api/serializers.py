@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MineralPrediction
+from .models import MineralPrediction, RockPrediction
 
 class MineralInputSerializer(serializers.Serializer):
     """
@@ -18,4 +18,13 @@ class MineralOutputSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = MineralPrediction
-        fields = '__all__' 
+        fields = '__all__'
+
+class RockInputSerializer(serializers.Serializer):
+    image = serializers.ImageField()
+
+class RockOutputSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RockPrediction
+        fields = ['id', 'image', 'predicted_class', 'confidence', 'created_at']
+        read_only_fields = ['id', 'predicted_class', 'confidence', 'created_at'] 

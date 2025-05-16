@@ -1,7 +1,7 @@
 import torch
 from torchvision import transforms
 from PIL import Image
-from model import RockResNet  # Make sure it's the same model format used in training
+from .model import RockResNet  # Importación relativa
 import os
 
 def load_model(model_path, device):
@@ -27,6 +27,27 @@ def predict_image(image_path, model, class_names, device):
         _, predicted = torch.max(output, 1)
 
     return class_names[predicted.item()]
+
+def get_prediction_probabilities(image_path, model, class_names, device):
+    transform = transforms.Compose([
+        transforms.Resize((256, 256)),
+        transforms.CenterCrop(224),
+        transforms.ToTensor()
+    ])
+
+    image = Image.open(image_path).convert("RGB")
+    input_tensor = transform(image).unsqueeze(0).to(device)
+
+    with torch.no_grad():
+        output = model(input_tensor)
+        probabilities = torch.nn.functional.softmax(output, dim=1)[0]
+
+    # Crear diccionario con las clases y sus probabilidades
+    probs_dict = {}
+    for i, prob in enumerate(probabilities):
+        probs_dict[class_names[i]] = float(prob)
+
+    return probs_dict
 
 if __name__ == "__main__":
     import sys

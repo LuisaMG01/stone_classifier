@@ -1,8 +1,8 @@
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import MineralInputSerializer, MineralOutputSerializer
-from .models import MineralPrediction
+from .serializers import MineralInputSerializer, MineralOutputSerializer, RockInputSerializer, RockOutputSerializer
+from .models import MineralPrediction, RockPrediction
 import sys
 import os
 import pandas as pd
@@ -14,6 +14,10 @@ from .model_metrics import (
     get_model_stats,
     generate_roc_curves
 )
+import torch
+from PIL import Image
+import tempfile
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,6 +25,7 @@ sys.path.append(BASE_DIR)
 
 from src.minerals.predict import predict
 from src.minerals.preprocess import load_chemical_group_mapping
+from src.rocks.predict import load_model, predict_image, get_prediction_probabilities
 
 class MineralPredictionView(APIView):
     """
@@ -177,3 +182,85 @@ class ModelMetricsView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class RockPredictionView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+    
+    def post(self, request, format=None):
+        serializer = RockInputSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            try:
+                # Guardar la imagen temporalmente
+                image = serializer.validated_data['image']
+                with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+                    tmp_file_path = tmp_file.name
+                    for chunk in image.chunks():
+                        tmp_file.write(chunk)
+                
+                # Cargar el modelo
+                model_path = os.path.join(BASE_DIR, 'model/rock_cnn_full.pth')
+                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                model, class_names = load_model(model_path, device)
+                
+                # Realizar la predicción
+                predicted_class = predict_image(tmp_file_path, model, class_names, device)
+                
+                # Obtener probabilidades
+                confidence = None
+                try:
+                    probas_dict = get_prediction_probabilities(tmp_file_path, model, class_names, device)
+                    
+                    # Ordenar las probabilidades de mayor a menor
+                    sorted_probabilities = sorted(
+                        probas_dict.items(),
+                        key=lambda x: x[1],
+                        reverse=True
+                    )
+                    
+                    # Asignar la confianza de la clase predicha
+                    confidence = probas_dict.get(predicted_class, 0.0)
+                except Exception as e:
+                    print(f"Error al obtener probabilidades: {str(e)}")
+                
+                # Eliminar el archivo temporal
+                if os.path.exists(tmp_file_path):
+                    os.unlink(tmp_file_path)
+                
+                # Guardar la predicción en la base de datos
+                prediction = RockPrediction(
+                    image=image,
+                    predicted_class=predicted_class,
+                    confidence=confidence
+                )
+                prediction.save()
+                
+                # Serializar la respuesta
+                output_serializer = RockOutputSerializer(prediction)
+                response_data = output_serializer.data
+                
+                # Agregar las probabilidades a la respuesta
+                if 'sorted_probabilities' in locals() and sorted_probabilities:
+                    response_data['prediction_probabilities'] = {
+                        'probabilities': sorted_probabilities,
+                        'top_confidence': sorted_probabilities[0][1] if sorted_probabilities else 0
+                    }
+                
+                return Response(response_data, status=status.HTTP_200_OK)
+                
+            except Exception as e:
+                import traceback
+                print(f"Error en la predicción de roca: {str(e)}")
+                print(traceback.format_exc())
+                return Response(
+                    {'error': str(e)},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class RockPredictionListView(APIView):
+    def get(self, request, format=None):
+        predictions = RockPrediction.objects.all().order_by('-created_at')
+        serializer = RockOutputSerializer(predictions, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

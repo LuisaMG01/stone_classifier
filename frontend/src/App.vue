@@ -10,7 +10,7 @@
           <div class="brand-icon-container me-2">
             <BIcon icon="gem" aria-hidden="true" class="brand-icon"></BIcon>
           </div>
-          <span class="brand-text">Clasificador de Minerales</span>
+          <span class="brand-text">Clasificador de Minerales y Rocas</span>
         </BNavbarBrand>
 
         <BNavbarToggle target="nav-collapse" class="ms-auto custom-toggler"></BNavbarToggle>
@@ -18,8 +18,10 @@
         <BCollapse id="nav-collapse" is-nav>
           <BNavbarNav class="ms-auto">
             <BNavItem to="/" exact class="nav-item-modern mx-1">Inicio</BNavItem>
-            <BNavItem to="/classify" class="nav-item-modern mx-1">Clasificación</BNavItem>
-            <BNavItem to="/history" class="nav-item-modern mx-1">Historial</BNavItem>
+            <BNavItem to="/classify" class="nav-item-modern mx-1">Clasificación de Minerales</BNavItem>
+            <BNavItem to="/classify-rocks" class="nav-item-modern mx-1">Clasificación de Rocas</BNavItem>
+            <BNavItem to="/history" class="nav-item-modern mx-1">Historial de Minerales</BNavItem>
+            <BNavItem to="/rock-history" class="nav-item-modern mx-1">Historial de Rocas</BNavItem>
             <BNavItem to="/model-analysis" class="nav-item-modern mx-1">Análisis del Modelo</BNavItem>
           </BNavbarNav>
         </BCollapse>
@@ -36,11 +38,11 @@
       <BContainer>
         <BRow>
           <BCol cols="12" md="6">
-            <h5 class="footer-title">Clasificador de Minerales</h5>
-            <p class="footer-text">Una aplicación para identificar y clasificar minerales utilizando aprendizaje automático.</p>
+            <h5 class="footer-title">Clasificador de Minerales y Rocas</h5>
+            <p class="footer-text">Una aplicación para identificar y clasificar minerales y rocas utilizando aprendizaje automático.</p>
           </BCol>
           <BCol cols="12" md="6" class="text-md-end">
-            <p class="footer-copyright">© 2025 Clasificador de Minerales. Todos los derechos reservados.</p>
+            <p class="footer-copyright">© 2025 Clasificador de Minerales y Rocas. Todos los derechos reservados.</p>
           </BCol>
         </BRow>
       </BContainer>

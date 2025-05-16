@@ -13,9 +13,19 @@ const routes = [
     component: () => import('../views/Predict.vue')
   },
   {
+    path: '/classify-rocks',
+    name: 'classify-rocks',
+    component: () => import('../views/RockPredict.vue')
+  },
+  {
     path: '/history',
     name: 'history',
     component: () => import('../views/History.vue')
+  },
+  {
+    path: '/rock-history',
+    name: 'rock-history',
+    component: () => import('../views/RockHistory.vue')
   },
   {
     path: '/model-analysis',
