@@ -99,6 +99,25 @@
             </BCard>
           </BTab>
           
+          <!-- Tab de curvas ROC -->
+          <BTab title="Curvas ROC">
+            <BCard class="glass-card mb-4">
+              <BCardBody class="p-4">
+                <h2 class="h3 mb-4 card-title">Curvas ROC por Grupo Químico</h2>
+                <p class="text-secondary mb-4">
+                  Visualización de la capacidad del modelo para distinguir entre diferentes grupos químicos.
+                  Las curvas ROC muestran la relación entre tasa de verdaderos positivos (sensibilidad) y tasa de falsos positivos.
+                </p>
+                <div class="chart-container" style="position: relative; height: 450px;">
+                  <canvas ref="rocCurvesChart"></canvas>
+                </div>
+                <div class="mt-4 insight-box">
+                  <p><strong>Interpretación:</strong> Cuanto más cerca esté la curva ROC de la esquina superior izquierda, mejor es el rendimiento del modelo para esa clase. El valor AUC (Área Bajo la Curva) cuantifica este rendimiento, donde 1.0 representa una clasificación perfecta.</p>
+                </div>
+              </BCardBody>
+            </BCard>
+          </BTab>
+          
           <!-- Tab de métricas del modelo -->
           <BTab title="Métricas de Rendimiento">
             <BCard class="glass-card mb-4">
@@ -207,6 +226,7 @@ export default defineComponent({
     const confusionMatrixChart = ref<HTMLCanvasElement | null>(null);
     const featureImportanceChart = ref<HTMLCanvasElement | null>(null);
     const pcaChart = ref<HTMLCanvasElement | null>(null);
+    const rocCurvesChart = ref<HTMLCanvasElement | null>(null);
     
     // Estado para los datos
     const classDistribution = ref<MetricsData | null>(null);
@@ -214,6 +234,7 @@ export default defineComponent({
     const featureImportance = ref<MetricsData | null>(null);
     const pcaData = ref<MetricsData | null>(null);
     const modelStats = ref<ModelStats | null>(null);
+    const rocCurvesData = ref<MetricsData | null>(null);
     
     // Estado para errores y carga
     const errorMessage = ref('');
@@ -225,7 +246,8 @@ export default defineComponent({
       classDistribution: null,
       confusionMatrix: null,
       featureImportance: null,
-      pca: null
+      pca: null,
+      rocCurves: null
     });
     
     // Varianza explicada del PCA
@@ -321,13 +343,15 @@ export default defineComponent({
           confusionMatrixData,
           featureImportanceData,
           pcaVisualizationData,
-          modelStatsData
+          modelStatsData,
+          rocCurvesResponse
         ] = await Promise.all([
           ModelMetricsService.getClassDistribution(),
           ModelMetricsService.getConfusionMatrix(),
           ModelMetricsService.getFeatureImportance(),
           ModelMetricsService.getPCAVisualization(),
-          ModelMetricsService.getModelStats()
+          ModelMetricsService.getModelStats(),
+          ModelMetricsService.getROCCurves()
         ]);
         
         // Guardar los datos
@@ -336,6 +360,7 @@ export default defineComponent({
         featureImportance.value = featureImportanceData;
         pcaData.value = pcaVisualizationData;
         modelStats.value = modelStatsData;
+        rocCurvesData.value = rocCurvesResponse;
         
         // Crear los gráficos una vez que tenemos los datos
         createCharts();
@@ -696,6 +721,116 @@ export default defineComponent({
           });
         }
       }
+      
+      // 5. Gráfico de curvas ROC
+      if (rocCurvesChart.value && rocCurvesData.value) {
+        const ctx = rocCurvesChart.value.getContext('2d');
+        if (ctx) {
+          // Preparar datasets para el gráfico de líneas
+          const datasets = [];
+          
+          // Línea de referencia (diagonal)
+          datasets.push({
+            label: 'Referencia',
+            data: [
+              { x: 0, y: 0 },
+              { x: 1, y: 1 }
+            ],
+            borderColor: 'rgba(200, 200, 200, 0.7)',
+            borderDash: [5, 5],
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false
+          });
+          
+          // Líneas para cada clase
+          const colors = generateColors(rocCurvesData.value.roc_curves.length);
+          
+          rocCurvesData.value.roc_curves.forEach((curve: any, i: number) => {
+            const points = curve.fpr.map((fpr: number, j: number) => ({
+              x: fpr,
+              y: curve.tpr[j]
+            }));
+            
+            datasets.push({
+              label: `${curve.class} (AUC = ${curve.auc.toFixed(2)})`,
+              data: points,
+              borderColor: colors[i],
+              backgroundColor: colors[i].replace('0.8', '0.1'),
+              borderWidth: 2,
+              pointRadius: 0,
+              pointHoverRadius: 5,
+              fill: false,
+              tension: 0.1
+            });
+          });
+          
+          charts.value.rocCurves = new Chart(ctx, {
+            type: 'line',
+            data: {
+              datasets
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    label: (context: any) => {
+                      const dataIndex = context.datasetIndex;
+                      
+                      if (dataIndex === 0) {
+                        return 'Referencia';
+                      }
+                      
+                      const label = context.dataset.label || '';
+                      const x = context.raw.x.toFixed(2);
+                      const y = context.raw.y.toFixed(2);
+                      
+                      return [
+                        label,
+                        `FPR: ${x}`,
+                        `TPR: ${y}`
+                      ];
+                    }
+                  }
+                },
+                legend: {
+                  position: 'top'
+                }
+              },
+              scales: {
+                x: {
+                  type: 'linear',
+                  title: {
+                    display: true,
+                    text: 'Tasa de Falsos Positivos (1 - Especificidad)',
+                    font: {
+                      weight: 'bold',
+                      size: 13
+                    }
+                  },
+                  min: 0,
+                  max: 1
+                },
+                y: {
+                  type: 'linear',
+                  title: {
+                    display: true,
+                    text: 'Tasa de Verdaderos Positivos (Sensibilidad)',
+                    font: {
+                      weight: 'bold',
+                      size: 13
+                    }
+                  },
+                  min: 0,
+                  max: 1
+                }
+              }
+            }
+          });
+        }
+      }
     };
     
     // Generar colores para los gráficos
@@ -739,6 +874,7 @@ export default defineComponent({
       confusionMatrixChart,
       featureImportanceChart,
       pcaChart,
+      rocCurvesChart,
       errorMessage,
       showError,
       isLoading,

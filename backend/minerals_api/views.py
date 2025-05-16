@@ -12,7 +12,8 @@ from .model_metrics import (
     get_feature_importance,
     get_class_distribution,
     generate_pca_visualization,
-    get_model_stats
+    get_model_stats,
+    generate_roc_curves
 )
 
 # Agregar la ruta del proyecto al path
@@ -132,6 +133,8 @@ class ModelMetricsView(APIView):
                 data = generate_pca_visualization()
             elif metrics_type == 'stats':
                 data = get_model_stats()
+            elif metrics_type == 'roc':
+                data = generate_roc_curves()
             else:
                 # Devolver todas las métricas
                 data = {
@@ -139,7 +142,8 @@ class ModelMetricsView(APIView):
                     'feature_importance': get_feature_importance(),
                     'class_distribution': get_class_distribution(),
                     'pca': generate_pca_visualization(),
-                    'stats': get_model_stats()
+                    'stats': get_model_stats(),
+                    'roc': generate_roc_curves()
                 }
             
             return Response(data, status=status.HTTP_200_OK)

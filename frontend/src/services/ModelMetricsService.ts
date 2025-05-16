@@ -68,6 +68,19 @@ class ModelMetricsService {
   }
 
   /**
+   * Obtiene los datos de curvas ROC para cada clase
+   */
+  async getROCCurves() {
+    try {
+      const response = await axios.get(`${API_URL}minerals/metrics/?type=roc`);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener las curvas ROC:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Obtiene todas las métricas del modelo en una sola petición
    */
   async getAllMetrics() {
