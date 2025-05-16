@@ -1,124 +1,156 @@
 <template>
   <div class="model-analysis-page">
-    <BContainer class="py-5">
-      <h1 class="text-center mb-4 section-title">Análisis del Modelo</h1>
-      <p class="text-center lead mb-5">
-        Exploración visual del modelo de clasificación de minerales y sus métricas de rendimiento
-      </p>
+    <div class="page-background"></div>
+    <BContainer fluid class="py-5 px-md-5">
+      <div class="header-section text-center mb-5">
+        <h1 class="display-4 mb-3 section-title fw-bold">Análisis del Modelo</h1>
+        <p class="lead text-secondary col-md-8 mx-auto">
+          Exploración visual del modelo de clasificación de minerales y sus métricas de rendimiento
+        </p>
+        <div class="accent-line mx-auto mt-4"></div>
+      </div>
       
       <!-- Tabs de navegación -->
-      <BTabs pills card vertical content-class="mt-3" class="mb-5">
-        <!-- Tab de distribución de clases -->
-        <BTab title="Distribución de Grupos" active>
-          <BCard class="shadow-sm mb-4">
-            <BCardBody>
-              <h2 class="h4 mb-4">Distribución de Grupos Químicos</h2>
-              <p class="text-muted">
-                Este gráfico muestra la distribución de minerales por grupo químico en el conjunto de datos.
-              </p>
-              <div class="chart-container" style="position: relative; height: 400px;">
-                <canvas ref="classDistributionChart"></canvas>
-              </div>
-            </BCardBody>
-          </BCard>
-        </BTab>
-        
-        <!-- Tab de matriz de confusión -->
-        <BTab title="Matriz de Confusión">
-          <BCard class="shadow-sm mb-4">
-            <BCardBody>
-              <h2 class="h4 mb-4">Matriz de Confusión</h2>
-              <p class="text-muted">
-                Muestra la precisión de clasificación del modelo para cada grupo químico.
-                Cada celda representa el número de minerales clasificados en una categoría vs. su grupo real.
-              </p>
-              <div class="chart-container" style="position: relative; min-height: 500px;">
-                <canvas ref="confusionMatrixChart"></canvas>
-              </div>
-              <div class="mt-4 small">
-                <p><strong>Interpretación:</strong> Los valores diagonales representan clasificaciones correctas. Valores fuera de la diagonal son clasificaciones incorrectas.</p>
-              </div>
-            </BCardBody>
-          </BCard>
-        </BTab>
-        
-        <!-- Tab de importancia de características -->
-        <BTab title="Importancia de Características">
-          <BCard class="shadow-sm mb-4">
-            <BCardBody>
-              <h2 class="h4 mb-4">Importancia de Características</h2>
-              <p class="text-muted">
-                Este gráfico muestra qué propiedades físicas tienen mayor influencia en la clasificación de minerales.
-              </p>
-              <div class="chart-container" style="position: relative; height: 400px;">
-                <canvas ref="featureImportanceChart"></canvas>
-              </div>
-              <div class="mt-4 small">
-                <p><strong>Interpretación:</strong> Valores más altos indican características que el modelo considera más relevantes para la clasificación.</p>
-              </div>
-            </BCardBody>
-          </BCard>
-        </BTab>
-        
-        <!-- Tab de visualización PCA -->
-        <BTab title="Visualización PCA">
-          <BCard class="shadow-sm mb-4">
-            <BCardBody>
-              <h2 class="h4 mb-4">Análisis de Componentes Principales (PCA)</h2>
-              <p class="text-muted">
-                Visualización de minerales en un espacio bidimensional, donde minerales similares aparecen cercanos entre sí.
-              </p>
-              <div class="chart-container" style="position: relative; height: 500px;">
-                <canvas ref="pcaChart"></canvas>
-              </div>
-              <div class="mt-4 small">
-                <p><strong>Interpretación:</strong> PCA reduce las dimensiones del conjunto de datos, permitiendo visualizar cómo se agrupan los minerales basados en sus propiedades.</p>
-                <p>Varianza explicada: {{ pcaVarianceExplained }}%</p>
-              </div>
-            </BCardBody>
-          </BCard>
-        </BTab>
-        
-        <!-- Tab de métricas del modelo -->
-        <BTab title="Métricas de Rendimiento">
-          <BCard class="shadow-sm mb-4">
-            <BCardBody>
-              <h2 class="h4 mb-4">Métricas de Rendimiento del Modelo</h2>
-              <p class="text-muted">
-                Estadísticas detalladas sobre el rendimiento del modelo para cada grupo químico.
-              </p>
-              
-              <div v-if="modelStats">
-                <h3 class="h5 mt-4">Rendimiento Global</h3>
-                <BTable striped hover :items="globalMetricsItems" :fields="globalMetricsFields"></BTable>
+      <div class="tabs-container">
+        <BTabs pills card vertical content-class="mt-0" class="mb-5 analysis-tabs">
+          <!-- Tab de distribución de clases -->
+          <BTab title="Distribución de Grupos" active>
+            <BCard class="glass-card mb-4">
+              <BCardBody class="p-4">
+                <h2 class="h3 mb-4 card-title">Distribución de Grupos Químicos</h2>
+                <p class="text-secondary mb-4">
+                  Este gráfico muestra la distribución de minerales por grupo químico en el conjunto de datos.
+                </p>
+                <div class="chart-container" style="position: relative; height: 450px;">
+                  <canvas ref="classDistributionChart"></canvas>
+                </div>
+              </BCardBody>
+            </BCard>
+          </BTab>
+          
+          <!-- Tab de matriz de confusión -->
+          <BTab title="Matriz de Confusión">
+            <BCard class="glass-card mb-4">
+              <BCardBody class="p-4">
+                <h2 class="h3 mb-4 card-title">Matriz de Confusión</h2>
+                <p class="text-secondary mb-4">
+                  Muestra la precisión de clasificación del modelo para cada grupo químico.
+                  Cada celda representa el número de minerales clasificados en una categoría vs. su grupo real.
+                </p>
+                <div class="chart-container confusion-matrix-container">
+                  <canvas ref="confusionMatrixChart"></canvas>
+                </div>
+                <div class="mt-4 insight-box">
+                  <p><strong>Interpretación:</strong> Los valores diagonales representan clasificaciones correctas. Valores fuera de la diagonal son clasificaciones incorrectas.</p>
+                </div>
+              </BCardBody>
+            </BCard>
+          </BTab>
+          
+          <!-- Tab de importancia de características -->
+          <BTab title="Importancia de Características">
+            <BCard class="glass-card mb-4">
+              <BCardBody class="p-4">
+                <h2 class="h3 mb-4 card-title">Importancia de Características</h2>
+                <p class="text-secondary mb-4">
+                  Este gráfico muestra qué propiedades físicas tienen mayor influencia en la clasificación de minerales.
+                </p>
+                <div class="chart-container" style="position: relative; height: 450px;">
+                  <canvas ref="featureImportanceChart"></canvas>
+                </div>
+                <div class="mt-4 insight-box">
+                  <p><strong>Interpretación:</strong> Valores más altos indican características que el modelo considera más relevantes para la clasificación.</p>
+                </div>
+              </BCardBody>
+            </BCard>
+          </BTab>
+          
+          <!-- Tab de visualización PCA -->
+          <BTab title="Visualización PCA">
+            <BCard class="glass-card mb-4">
+              <BCardBody class="p-4">
+                <h2 class="h3 mb-4 card-title">Análisis de Componentes Principales (PCA)</h2>
+                <p class="text-secondary mb-4">
+                  Visualización de minerales en un espacio bidimensional, donde minerales similares aparecen cercanos entre sí.
+                </p>
+                <div class="chart-container" style="position: relative; height: 500px;">
+                  <canvas ref="pcaChart"></canvas>
+                </div>
+                <div class="mt-4 insight-box">
+                  <p><strong>Interpretación:</strong> PCA reduce las dimensiones del conjunto de datos, permitiendo visualizar cómo se agrupan los minerales basados en sus propiedades.</p>
+                  <p class="mb-0 badge-variance">Varianza explicada: <span class="badge bg-primary">{{ pcaVarianceExplained }}%</span></p>
+                </div>
+              </BCardBody>
+            </BCard>
+          </BTab>
+          
+          <!-- Tab de métricas del modelo -->
+          <BTab title="Métricas de Rendimiento">
+            <BCard class="glass-card mb-4">
+              <BCardBody class="p-4">
+                <h2 class="h3 mb-4 card-title">Métricas de Rendimiento del Modelo</h2>
+                <p class="text-secondary mb-4">
+                  Estadísticas detalladas sobre el rendimiento del modelo para cada grupo químico.
+                </p>
                 
-                <h3 class="h5 mt-4">Rendimiento por Grupo Químico</h3>
-                <BTable striped hover responsive :items="classMetricsItems" :fields="classMetricsFields"></BTable>
-              </div>
-              
-              <div v-else class="text-center py-4">
-                <BSpinner variant="primary"></BSpinner>
-                <p class="mt-2">Cargando métricas...</p>
-              </div>
-              
-              <div class="mt-4 small">
-                <p><strong>Interpretación:</strong></p>
-                <ul>
-                  <li><strong>Precisión (Precision):</strong> Porcentaje de minerales clasificados correctamente en un grupo específico.</li>
-                  <li><strong>Sensibilidad (Recall):</strong> Porcentaje de minerales de un grupo que fueron identificados correctamente.</li>
-                  <li><strong>Puntuación F1:</strong> Media armónica entre precisión y sensibilidad.</li>
-                  <li><strong>Soporte:</strong> Número de minerales en el conjunto de datos para cada grupo.</li>
-                </ul>
-              </div>
-            </BCardBody>
-          </BCard>
-        </BTab>
-      </BTabs>
+                <div v-if="modelStats" class="metrics-container">
+                  <h3 class="h5 mt-4 mb-3">Rendimiento Global</h3>
+                  <BTable striped hover class="global-metrics-table" :items="globalMetricsItems" :fields="globalMetricsFields"></BTable>
+                  
+                  <h3 class="h5 mt-5 mb-3">Rendimiento por Grupo Químico</h3>
+                  <div class="table-responsive">
+                    <BTable striped hover responsive class="class-metrics-table" :items="classMetricsItems" :fields="classMetricsFields"></BTable>
+                  </div>
+                </div>
+                
+                <div v-else class="text-center py-5">
+                  <div class="spinner-container">
+                    <BSpinner variant="primary" class="spinner-lg"></BSpinner>
+                  </div>
+                  <p class="mt-3 text-secondary">Cargando métricas...</p>
+                </div>
+                
+                <div class="mt-4 insight-box">
+                  <p class="mb-2"><strong>Interpretación:</strong></p>
+                  <div class="metrics-explanation">
+                    <div class="metric-item">
+                      <div class="metric-icon precision-icon">P</div>
+                      <div class="metric-text">
+                        <strong>Precisión (Precision):</strong> Porcentaje de minerales clasificados correctamente en un grupo específico.
+                      </div>
+                    </div>
+                    <div class="metric-item">
+                      <div class="metric-icon recall-icon">R</div>
+                      <div class="metric-text">
+                        <strong>Sensibilidad (Recall):</strong> Porcentaje de minerales de un grupo que fueron identificados correctamente.
+                      </div>
+                    </div>
+                    <div class="metric-item">
+                      <div class="metric-icon f1-icon">F1</div>
+                      <div class="metric-text">
+                        <strong>Puntuación F1:</strong> Media armónica entre precisión y sensibilidad.
+                      </div>
+                    </div>
+                    <div class="metric-item">
+                      <div class="metric-icon support-icon">S</div>
+                      <div class="metric-text">
+                        <strong>Soporte:</strong> Número de minerales en el conjunto de datos para cada grupo.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </BCardBody>
+            </BCard>
+          </BTab>
+        </BTabs>
+      </div>
       
       <!-- Mensaje de error -->
-      <BAlert v-model="showError" variant="danger" dismissible class="mt-3">
-        <BIcon icon="exclamation-triangle-fill" aria-hidden="true"></BIcon>
-        {{ errorMessage }}
+      <BAlert v-model="showError" variant="danger" dismissible class="mt-3 error-alert">
+        <div class="d-flex align-items-center">
+          <BIcon icon="exclamation-triangle-fill" aria-hidden="true" class="me-2 flex-shrink-0"></BIcon>
+          <div>{{ errorMessage }}</div>
+        </div>
       </BAlert>
     </BContainer>
   </div>
@@ -699,29 +731,259 @@ export default defineComponent({
 
 <style scoped>
 .model-analysis-page {
-  background-color: #f8f9fa;
-  min-height: calc(100vh - 60px - 100px); /* Considerando altura de navbar y footer */
+  background-color: #f8fafc;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.page-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(26, 75, 140, 0.05), transparent 70%),
+              radial-gradient(circle at bottom left, rgba(52, 152, 219, 0.05), transparent 70%);
+  z-index: -1;
+}
+
+.header-section {
+  margin-bottom: 3rem;
 }
 
 .section-title {
   color: #1a4b8c;
-  font-weight: bold;
+  letter-spacing: -0.5px;
+}
+
+.accent-line {
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, #1a4b8c, #52a5e0);
+  border-radius: 2px;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.7);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
+}
+
+.card-title {
+  color: #1a4b8c;
+  font-weight: 600;
+  position: relative;
 }
 
 .chart-container {
   margin: 20px 0;
+  border-radius: 8px;
+  padding: 16px;
+  background: #ffffff;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+  border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
-/* Estilo para los tabs verticales */
-:deep(.nav-pills .nav-link.active) {
-  background-color: #1a4b8c;
+.confusion-matrix-container {
+  min-height: 550px;
+  padding: 24px;
+}
+
+.insight-box {
+  background-color: rgba(243, 244, 246, 0.7);
+  border-left: 4px solid #1a4b8c;
+  padding: 15px;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.9rem;
+}
+
+.badge-variance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-variance .badge {
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  border-radius: 20px;
+  background: linear-gradient(to right, #1a4b8c, #3498db);
+  font-weight: 500;
+}
+
+/* Estilos para las tabs */
+:deep(.analysis-tabs) {
+  gap: 20px;
+}
+
+:deep(.card-header) {
+  border-radius: 10px !important;
+  background-color: transparent !important;
+  border-bottom: none !important;
+}
+
+:deep(.tab-content) {
+  padding-left: 20px;
+  flex: 1;
+}
+
+:deep(.nav-pills) {
+  border-radius: 10px;
+  background: #fff;
+  padding: 15px 10px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(226, 232, 240, 0.7);
 }
 
 :deep(.nav-pills .nav-link) {
+  color: #64748b;
+  border-radius: 8px;
+  margin: 5px 0;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  padding: 12px 15px;
+}
+
+:deep(.nav-pills .nav-link:hover:not(.active)) {
+  background-color: rgba(226, 232, 240, 0.5);
   color: #1a4b8c;
 }
 
-:deep(.card-header:first-child) {
+:deep(.nav-pills .nav-link.active) {
+  background: linear-gradient(to right, #1a4b8c, #3498db);
+  box-shadow: 0 4px 12px rgba(26, 75, 140, 0.2);
+  color: white;
+  font-weight: 600;
+}
+
+/* Estilos para las tablas */
+:deep(.table) {
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+  border: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+:deep(.table thead th) {
   background-color: rgba(26, 75, 140, 0.05);
+  color: #1a4b8c;
+  font-weight: 600;
+  border-bottom: 2px solid rgba(26, 75, 140, 0.1);
+  padding: 12px 16px;
+}
+
+:deep(.table tbody td) {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+  color: #374151;
+}
+
+:deep(.table tbody tr:last-child td) {
+  border-bottom: none;
+}
+
+/* Estilos para los indicadores de métricas */
+.metrics-explanation {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.metric-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.metric-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.precision-icon {
+  background: linear-gradient(to right, #1a4b8c, #3498db);
+}
+
+.recall-icon {
+  background: linear-gradient(to right, #2980b9, #3498db);
+}
+
+.f1-icon {
+  background: linear-gradient(to right, #3498db, #52a5e0);
+}
+
+.support-icon {
+  background: linear-gradient(to right, #52a5e0, #85c1e9);
+}
+
+.metric-text {
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+/* Estilos para el spinner */
+.spinner-container {
+  margin: 30px 0;
+}
+
+.spinner-lg {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Estilos para alerta de error */
+.error-alert {
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+}
+
+/* Media queries para responsividad */
+@media (max-width: 992px) {
+  :deep(.tab-content) {
+    padding-left: 0;
+    margin-top: 20px;
+  }
+  
+  .metrics-explanation {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-section {
+    margin-bottom: 2rem;
+  }
+  
+  .header-section h1 {
+    font-size: 2rem;
+  }
+  
+  .chart-container {
+    padding: 10px;
+  }
+  
+  .confusion-matrix-container {
+    min-height: 450px;
+    padding: 12px;
+  }
 }
 </style> 
