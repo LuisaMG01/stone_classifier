@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400px" height="400px" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo transparente del cristal -->
+  <polygon points="200,20 100,150 100,300 200,380 300,300 300,150" 
+           style="fill:rgba(173, 216, 230, 0.7);stroke:#4682B4;stroke-width:2"/>
+  
+  <!-- Facetas internas del cristal -->
+  <polygon points="200,20 150,120 200,180 250,120" 
+           style="fill:#1E90FF;stroke:#4682B4;stroke-width:1"/>
+  <polygon points="150,120 100,150 100,300 200,380 200,180" 
+           style="fill:#4169E1;stroke:#4682B4;stroke-width:1"/>
+  <polygon points="250,120 300,150 300,300 200,380 200,180" 
+           style="fill:#6495ED;stroke:#4682B4;stroke-width:1"/>
+  
+  <!-- Reflejos de luz -->
+  <polygon points="180,40 160,80 200,100 220,60" 
+           style="fill:white;fill-opacity:0.4"/>
+  <polygon points="120,200 140,220 160,210 140,190" 
+           style="fill:white;fill-opacity:0.3"/>
+  <polygon points="260,250 280,270 290,250 270,230" 
+           style="fill:white;fill-opacity:0.3"/>
+</svg> 
