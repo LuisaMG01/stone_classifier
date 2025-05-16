@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -16,11 +15,10 @@ from .model_metrics import (
     generate_roc_curves
 )
 
-# Agregar la ruta del proyecto al path
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
-# Importar las funciones de predicción desde el módulo minerals
 from src.minerals.predict import predict
 from src.minerals.preprocess import load_chemical_group_mapping
 
@@ -50,11 +48,8 @@ class MineralPredictionView(APIView):
         
         if serializer.is_valid():
             try:
-                # Preparar los datos para la predicción
                 input_data = serializer.validated_data
                 
-                # Convertir el input a un DataFrame para la predicción
-                # Asegurarse de que los nombres de las columnas coincidan con lo que espera el modelo
                 transformed_data = {
                     "Element": input_data["Element"],
                     "Specific Gravity": input_data["Specific_Gravity"],
@@ -66,7 +61,6 @@ class MineralPredictionView(APIView):
                 
                 input_df = pd.DataFrame([transformed_data])
                 
-                # Realizar la predicción utilizando el modelo
                 model_path = os.path.join(BASE_DIR, 'model/crystal_model.pkl')
                 reference_data_path = os.path.join(BASE_DIR, 'data/minerals/minerals.csv')
                 
@@ -74,9 +68,33 @@ class MineralPredictionView(APIView):
                     input_df,
                     model_path=model_path,
                     reference_data_path=reference_data_path
-                )[0]  # Obtenemos el primer resultado
+                )[0]  
+
+                prediction_probabilities = {}
+                try:
+                    from src.minerals.predict import get_model_prediction_probas
+                    
+                    probas_dict = get_model_prediction_probas(
+                        input_df, 
+                        model_path=model_path,
+                        reference_data_path=reference_data_path
+                    )
+                    
+                    sorted_probabilities = sorted(
+                        probas_dict.items(),
+                        key=lambda x: x[1],
+                        reverse=True
+                    )
+                    
+                    prediction_probabilities = {
+                        'probabilities': sorted_probabilities,
+                        'top_confidence': sorted_probabilities[0][1] if sorted_probabilities else 0
+                    }
+                    
+                except Exception as e:
+                    print(f"Error al obtener probabilidades: {str(e)}")
+                    prediction_probabilities = None
                 
-                # Guardar la predicción en la base de datos
                 prediction = MineralPrediction(
                     element=input_data['Element'],
                     specific_gravity=input_data['Specific_Gravity'],
@@ -88,11 +106,18 @@ class MineralPredictionView(APIView):
                 )
                 prediction.save()
                 
-                # Serializar la respuesta
                 output_serializer = MineralOutputSerializer(prediction)
-                return Response(output_serializer.data, status=status.HTTP_200_OK)
+                response_data = output_serializer.data
+                
+                if prediction_probabilities:
+                    response_data['prediction_confidence'] = prediction_probabilities
+                
+                return Response(response_data, status=status.HTTP_200_OK)
                 
             except Exception as e:
+                import traceback
+                print(f"Error en la predicción: {str(e)}")
+                print(traceback.format_exc())
                 return Response(
                     {'error': str(e)},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -136,7 +161,6 @@ class ModelMetricsView(APIView):
             elif metrics_type == 'roc':
                 data = generate_roc_curves()
             else:
-                # Devolver todas las métricas
                 data = {
                     'confusion_matrix': generate_confusion_matrix(),
                     'feature_importance': get_feature_importance(),

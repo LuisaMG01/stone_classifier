@@ -170,6 +170,19 @@
                   </div>
                   <h3 class="mt-3 prediction-title">{{ prediction.predicted_group }}</h3>
                   <div class="prediction-subtitle">Grupo Químico</div>
+                  
+                  <!-- Añadir la confianza de la predicción si está disponible -->
+                  <div v-if="prediction.prediction_confidence" class="confidence-badge mt-2">
+                    {{ Math.round(prediction.prediction_confidence.top_confidence * 100) }}% confianza
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Gráfico de probabilidades -->
+              <div v-if="prediction.prediction_confidence" class="confidence-chart-container mb-4">
+                <h4 class="h5 mb-3 text-center">Probabilidades por Grupo</h4>
+                <div class="chart-container" style="position: relative; height: 200px;">
+                  <canvas ref="confidenceChart"></canvas>
                 </div>
               </div>
               
@@ -226,6 +239,7 @@
 import { defineComponent, ref, computed } from 'vue';
 import MineralService from '@/services/MineralService';
 import type { MineralPredictionRequest, MineralPredictionResponse } from '@/shared/interfaces/minerals/MineralResponseInterface';
+import Chart from 'chart.js/auto';
 
 export default defineComponent({
   name: 'ClassifyView',
@@ -249,6 +263,10 @@ export default defineComponent({
     const isLoading = ref(false);
     const errorMessage = ref('');
     const showError = ref(false);
+    
+    // Referencia al canvas para el gráfico
+    const confidenceChart = ref<HTMLCanvasElement | null>(null);
+    let chartInstance: Chart | null = null;
     
     // Validación
     const validateForm = (): boolean => {
@@ -291,8 +309,19 @@ export default defineComponent({
       errorMessage.value = '';
       showError.value = false;
       
+      // Destruir el gráfico existente si hay uno
+      if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+      
       try {
         prediction.value = await MineralService.predictMineral(formData.value);
+        
+        // Crear el gráfico de confianza si hay datos disponibles
+        setTimeout(() => {
+          createConfidenceChart();
+        }, 100);
       } catch (error) {
         errorMessage.value = error instanceof Error 
           ? error.message 
@@ -302,6 +331,93 @@ export default defineComponent({
       } finally {
         isLoading.value = false;
       }
+    };
+    
+    // Crear el gráfico de confianza
+    const createConfidenceChart = () => {
+      if (!confidenceChart.value || !prediction.value?.prediction_confidence) return;
+      
+      const ctx = confidenceChart.value.getContext('2d');
+      if (!ctx) return;
+      
+      // Destruir el gráfico existente si hay uno
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+      
+      // Ordenar las probabilidades de mayor a menor
+      const probabilities = prediction.value.prediction_confidence.probabilities;
+      
+      // Extraer etiquetas y valores
+      const labels = probabilities.map((item: [string, number]) => item[0]);
+      const values = probabilities.map((item: [string, number]) => item[1] * 100); // Convertir a porcentaje
+      
+      // Generar colores para las barras
+      const colors = generateGroupColors(labels);
+      
+      // Crear el gráfico
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Confianza (%)',
+            data: values,
+            backgroundColor: colors,
+            borderColor: colors.map(c => c.replace('0.7', '1')),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: (context: any) => {
+                  return `Confianza: ${context.raw.toFixed(1)}%`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              max: 100,
+              title: {
+                display: true,
+                text: 'Confianza (%)'
+              }
+            },
+            y: {
+              ticks: {
+                font: {
+                  weight: (context: any) => {
+                    // Destacar la clase predicha
+                    return labels[context.index] === prediction.value?.predicted_group ? 'bold' : 'normal';
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+    };
+    
+    // Generar colores para cada grupo
+    const generateGroupColors = (groups: string[]) => {
+      // Usar un color destacado para el grupo predicho
+      return groups.map(group => {
+        if (group === prediction.value?.predicted_group) {
+          return 'rgba(26, 75, 140, 0.7)';  // Color primario para el grupo predicho
+        } else {
+          return 'rgba(52, 152, 219, 0.7)';  // Color secundario para otros grupos
+        }
+      });
     };
     
     // Campos para la tabla de resultados
@@ -314,7 +430,7 @@ export default defineComponent({
     const predictionItems = computed(() => {
       if (!prediction.value) return [];
       
-      return [
+      const items = [
         { property: 'Grupo Químico', value: prediction.value.predicted_group },
         { property: 'Elemento', value: prediction.value.element },
         { property: 'Gravedad Específica', value: prediction.value.specific_gravity },
@@ -324,6 +440,16 @@ export default defineComponent({
         { property: 'Propiedad Óptica', value: prediction.value.optical !== null ? prediction.value.optical : 'No disponible' },
         { property: 'Fecha de Clasificación', value: new Date(prediction.value.created_at).toLocaleDateString() }
       ];
+      
+      // Añadir confianza de la predicción si está disponible
+      if (prediction.value.prediction_confidence) {
+        items.push({
+          property: 'Confianza de Predicción',
+          value: `${(prediction.value.prediction_confidence.top_confidence * 100).toFixed(1)}%`
+        });
+      }
+      
+      return items;
     });
     
     return {
@@ -335,7 +461,9 @@ export default defineComponent({
       validationState,
       submitPrediction,
       predictionFields,
-      predictionItems
+      predictionItems,
+      confidenceChart,
+      validateForm
     };
   }
 });
@@ -564,6 +692,28 @@ export default defineComponent({
 .error-alert {
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+}
+
+.confidence-badge {
+  background-color: rgba(255, 255, 255, 0.3);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+  backdrop-filter: blur(2px);
+}
+
+.confidence-chart-container {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.chart-container {
+  margin: 10px 0;
 }
 
 @media (max-width: 992px) {

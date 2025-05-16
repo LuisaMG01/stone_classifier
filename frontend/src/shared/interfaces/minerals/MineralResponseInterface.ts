@@ -7,6 +7,11 @@ export interface MineralPredictionRequest {
   Optical?: number | undefined;
 }
 
+export interface PredictionConfidence {
+  probabilities: Array<[string, number]>;
+  top_confidence: number;
+}
+
 export interface MineralPredictionResponse {
   id: number;
   element: string;
@@ -17,4 +22,5 @@ export interface MineralPredictionResponse {
   optical: number | null;
   predicted_group: string;
   created_at: string;
+  prediction_confidence?: PredictionConfidence;
 } 
