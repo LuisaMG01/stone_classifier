@@ -124,3 +124,145 @@ pip install -r requirements.txt
 
 ---
 
+
+# Clasificador de Rocas con Red Neuronal Convolucional (CNN)
+
+##  Objetivo del Proyecto
+
+El objetivo de este proyecto es clasificar imágenes de rocas en tres tipos principales de estructuras geológicas: **Igneous**, **Metamorphic** y **Sedimentary**, utilizando una red neuronal convolucional (CNN). Este modelo puede ser útil para aplicaciones educativas, geológicas o mineras, facilitando la identificación automática de muestras a partir de fotografías.
+
+---
+
+##  Intuición del Modelo
+
+Las rocas tienen **patrones visuales** particulares dependiendo de su origen geológico. Por ejemplo:
+
+* Las **ígneas** tienden a mostrar estructuras cristalinas.
+* Las **metamórficas** tienen bandas foliares por presión y calor.
+* Las **sedimentarias** presentan capas visibles y textura granular.
+
+Una **CNN** es ideal para capturar estas diferencias gracias a su capacidad de:
+
+* Extraer **características espaciales** jerárquicas.
+* Detectar **bordes, formas y texturas** relevantes en las imágenes.
+
+---
+
+## Arquitectura y Entrenamiento
+
+### Modelo Usado
+
+Se utilizó una red **ResNet18** modificada (transfer learning), cargando pesos preentrenados de ImageNet y ajustando la capa final para 3 clases.
+
+```python
+model = RockResNet(num_classes=3)
+```
+
+### Preprocesamiento
+
+* Redimensionado a 256x256
+* Recorte central a 224x224
+* Conversión a tensores normalizados
+
+### Entrenamiento
+
+```bash
+python main.py
+```
+
+* **Optimizer:** Adam
+* **Learning rate:** 0.001
+* **Epochs:** 20
+* **Batch size:** 32
+* **Pérdida:** CrossEntropyLoss
+
+Se aplica un `WeightedRandomSampler` para tratar el **desbalance de clases** durante el entrenamiento.
+
+### Guardado del modelo
+
+El modelo se guarda con metadatos (clases y arquitectura) en:
+
+```bash
+model/rock_cnn_full.pth
+```
+
+---
+
+##  Predicción de Nuevas Imágenes
+
+Puedes predecir la clase de una nueva imagen usando:
+
+```bash
+python predict.py imagen.jpg
+```
+
+El script usa la ruta al modelo entrenado y devuelve:
+
+* Clase predicha
+* Probabilidades por clase
+
+---
+
+##  Métricas de Rendimiento
+
+| Clase       | Precision | Recall | F1-Score | Support |
+| ----------- | --------- | ------ | -------- | ------- |
+| Igneous     | 0.58      | 0.66   | 0.61     | 29      |
+| Metamorphic | 0.86      | 0.81   | 0.83     | 121     |
+| Sedimentary | 0.85      | 0.86   | 0.86     | 162     |
+
+* **Accuracy total:** 82%
+* **Macro F1-score:** 0.77 (media uniforme por clase)
+* **Weighted F1-score:** 0.83 (ajustado al número de muestras)
+
+### Interpretación:
+
+* El modelo se desempeña bien en clases balanceadas (**Metamorphic**, **Sedimentary**).
+* **Igneous** tiene menor performance, posiblemente por menor número de ejemplos (sólo 29).
+* El uso de **data augmentation** o recolección de más datos ígneos podría mejorar el rendimiento.
+
+---
+
+##  Extensiones Futuras
+
+* Usar otras arquitecturas como EfficientNet.
+* Aumentar el dataset con técnicas de data augmentation.
+* Crear una interfaz web o app para subir imágenes y obtener predicciones.
+
+---
+
+##  Estructura del Proyecto
+
+```
+rock_classifier/
+├── data/rocks/train, val, test
+├── model/
+│   └── rock_cnn_full.pth
+├── src/
+│   ├── main.py
+│   ├── train.py
+│   ├── evaluate.py
+│   ├── predict.py
+│   ├── model.py
+│   └── utils.py
+```
+
+---
+
+##  Requisitos
+
+* Python >= 3.8
+* torch, torchvision
+* scikit-learn
+* PIL
+* numpy
+
+Instalar con:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+
