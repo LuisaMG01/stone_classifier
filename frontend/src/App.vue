@@ -17,12 +17,48 @@
 
         <BCollapse id="nav-collapse" is-nav>
           <BNavbarNav class="ms-auto">
-            <BNavItem to="/" exact class="nav-item-modern mx-1">Inicio</BNavItem>
-            <BNavItem to="/classify" class="nav-item-modern mx-1">Clasificación de Minerales</BNavItem>
-            <BNavItem to="/classify-rocks" class="nav-item-modern mx-1">Clasificación de Rocas</BNavItem>
-            <BNavItem to="/history" class="nav-item-modern mx-1">Historial de Minerales</BNavItem>
-            <BNavItem to="/rock-history" class="nav-item-modern mx-1">Historial de Rocas</BNavItem>
-            <BNavItem to="/model-analysis" class="nav-item-modern mx-1">Análisis del Modelo</BNavItem>
+            <BNavItem to="/" exact class="nav-item-modern mx-1">
+              <BIcon icon="house-door" class="menu-icon me-1"></BIcon>
+              Inicio
+            </BNavItem>
+            
+            <!-- Menú desplegable de Clasificación -->
+            <BNavItemDropdown class="nav-item-modern mx-1" id="classification-dropdown">
+              <template #button-content>
+                <BIcon icon="clipboard-data" class="menu-icon me-1"></BIcon>
+                Clasificación
+              </template>
+              <BDropdownItem to="/classify" class="mineral-dropdown-item">
+                <BIcon icon="gem" class="me-1" variant="primary"></BIcon>
+                Minerales
+              </BDropdownItem>
+              <BDropdownItem to="/classify-rocks" class="rock-dropdown-item">
+                <BIcon icon="layers" class="me-1" variant="purple"></BIcon>
+                Rocas
+              </BDropdownItem>
+            </BNavItemDropdown>
+            
+            <!-- Menú desplegable de Historiales -->
+            <BNavItemDropdown class="nav-item-modern mx-1" id="history-dropdown">
+              <template #button-content>
+                <BIcon icon="clock-history" class="menu-icon me-1"></BIcon>
+                Historiales
+              </template>
+              <BDropdownItem to="/history" class="mineral-dropdown-item">
+                <BIcon icon="gem" class="me-1" variant="primary"></BIcon>
+                Minerales
+              </BDropdownItem>
+              <BDropdownItem to="/rock-history" class="rock-dropdown-item">
+                <BIcon icon="layers" class="me-1" variant="purple"></BIcon>
+                Rocas
+              </BDropdownItem>
+            </BNavItemDropdown>
+            
+            <!-- Análisis -->
+            <BNavItem to="/model-analysis" class="nav-item-modern mx-1">
+              <BIcon icon="graph-up" class="menu-icon me-1"></BIcon>
+              Análisis
+            </BNavItem>
           </BNavbarNav>
         </BCollapse>
       </BContainer>
@@ -206,6 +242,52 @@ main {
 .footer-copyright {
   font-size: 0.9rem;
   opacity: 0.8;
+}
+
+/* Estilos específicos para los menús desplegables */
+.menu-icon {
+  font-size: 1rem;
+  vertical-align: -2px;
+}
+
+.dropdown-menu {
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(15, 23, 42, 0.1);
+  border: 1px solid rgba(226, 232, 240, 0.7);
+  padding: 0.5rem;
+  min-width: 180px;
+}
+
+.dropdown-item {
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.mineral-dropdown-item:hover, .mineral-dropdown-item:focus {
+  background-color: rgba(26, 75, 140, 0.07);
+  color: #1a4b8c;
+}
+
+.rock-dropdown-item:hover, .rock-dropdown-item:focus {
+  background-color: rgba(92, 48, 125, 0.07);
+  color: #5c307d;
+}
+
+/* Corregir el icono morado que no está definido en Bootstrap */
+.b-icon.text-purple {
+  color: #5c307d !important;
+}
+
+.nav-item-modern .dropdown-toggle::after {
+  margin-left: 0.4em;
+  vertical-align: 0.15em;
+}
+
+.navbar .nav-item.show > .nav-link {
+  color: var(--primary-color) !important;
+  background-color: rgba(26, 75, 140, 0.05);
 }
 
 /* Responsive adjustments */
