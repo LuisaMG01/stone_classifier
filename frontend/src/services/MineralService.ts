@@ -20,7 +20,7 @@ class MineralService extends BaseService {
    * @returns Lista de predicciones anteriores
    */
   async getPredictionHistory(): Promise<MineralPredictionResponse[]> {
-    const url = `${API_URL}predictions/`;
+    const url = `${API_URL}history/`;
     return this.makeRequest(url, true);
   }
 }

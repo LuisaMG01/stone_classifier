@@ -1,17 +1,21 @@
 <template>
   <div class="predict-page">
-    <BContainer class="py-5">
-      <h1 class="text-center mb-4 section-title">Clasificación de Minerales</h1>
-      <p class="text-center lead mb-5">
-        Ingresa las propiedades físicas del mineral para determinar su grupo químico
-      </p>
+    <div class="page-background"></div>
+    <BContainer class="py-5 px-md-4">
+      <div class="header-section text-center mb-5">
+        <h1 class="display-4 mb-3 section-title fw-bold">Clasificación de Minerales</h1>
+        <p class="lead text-secondary col-md-8 mx-auto">
+          Ingresa las propiedades físicas del mineral para determinar su grupo químico
+        </p>
+        <div class="accent-line mx-auto mt-4"></div>
+      </div>
       
       <BRow>
         <BCol cols="12" lg="6" class="mb-4">
           <!-- Formulario de clasificación -->
-          <BCard class="shadow-sm">
-            <BCardBody>
-              <h2 class="h4 mb-4">Propiedades del Mineral</h2>
+          <BCard class="glass-card form-card h-100">
+            <BCardBody class="p-4">
+              <h2 class="h3 mb-4 card-title">Propiedades del Mineral</h2>
               
               <BForm @submit.prevent="submitPrediction" ref="form">
                 <!-- Elemento -->
@@ -19,6 +23,7 @@
                   label="Elemento Principal:"
                   label-for="element-input"
                   description="Ingresa el símbolo químico del elemento principal (Si, Ca, Fe, etc.)"
+                  class="mb-4"
                 >
                   <BFormInput
                     id="element-input"
@@ -26,6 +31,7 @@
                     placeholder="Ej: Si"
                     required
                     :state="validationState('Element')"
+                    class="modern-input"
                   ></BFormInput>
                   <BFormInvalidFeedback>
                     El elemento es requerido
@@ -36,6 +42,7 @@
                 <BFormGroup
                   label="Gravedad Específica:"
                   label-for="specific-gravity-input"
+                  class="mb-4"
                 >
                   <BFormInput
                     id="specific-gravity-input"
@@ -45,6 +52,7 @@
                     placeholder="Ej: 2.65"
                     required
                     :state="validationState('Specific_Gravity')"
+                    class="modern-input"
                   ></BFormInput>
                   <BFormInvalidFeedback>
                     Ingrese un valor numérico válido
@@ -55,6 +63,7 @@
                 <BFormGroup
                   label="Densidad Calculada (g/cm³):"
                   label-for="density-input"
+                  class="mb-4"
                 >
                   <BFormInput
                     id="density-input"
@@ -64,6 +73,7 @@
                     placeholder="Ej: 2.65"
                     required
                     :state="validationState('Calculated_Density')"
+                    class="modern-input"
                   ></BFormInput>
                   <BFormInvalidFeedback>
                     Ingrese un valor numérico válido
@@ -75,6 +85,7 @@
                   label="Índice de Refracción:"
                   label-for="refractive-input"
                   description="Opcional"
+                  class="mb-4"
                 >
                   <BFormInput
                     id="refractive-input"
@@ -82,6 +93,7 @@
                     type="number"
                     step="0.01"
                     placeholder="Ej: 1.54"
+                    class="modern-input"
                   ></BFormInput>
                 </BFormGroup>
                 
@@ -89,6 +101,7 @@
                 <BFormGroup
                   label="Dureza de Mohs:"
                   label-for="hardness-input"
+                  class="mb-4"
                 >
                   <BFormInput
                     id="hardness-input"
@@ -100,6 +113,7 @@
                     placeholder="Ej: 7"
                     required
                     :state="validationState('Mohs_Hardness')"
+                    class="modern-input"
                   ></BFormInput>
                   <BFormInvalidFeedback>
                     Ingrese un valor entre 1 y 10
@@ -111,24 +125,28 @@
                   label="Propiedad Óptica:"
                   label-for="optical-input"
                   description="Opcional"
+                  class="mb-4"
                 >
                   <BFormInput
                     id="optical-input"
                     v-model.number="formData.Optical"
                     type="number"
                     placeholder="Ej: 1"
+                    class="modern-input"
                   ></BFormInput>
                 </BFormGroup>
                 
-                <div class="d-grid gap-2 mt-4">
+                <div class="d-grid gap-2 mt-5">
                   <BButton 
                     type="submit" 
-                    variant="primary" 
+                    class="modern-button"
                     size="lg"
                     :disabled="isLoading"
                   >
-                    <BSpinner v-if="isLoading" small></BSpinner>
-                    {{ isLoading ? 'Procesando...' : 'Clasificar Mineral' }}
+                    <div class="d-flex align-items-center justify-content-center">
+                      <BSpinner v-if="isLoading" small class="me-2"></BSpinner>
+                      <span>{{ isLoading ? 'Procesando...' : 'Clasificar Mineral' }}</span>
+                    </div>
                   </BButton>
                 </div>
               </BForm>
@@ -140,41 +158,48 @@
           <!-- Resultado de la clasificación -->
           <BCard 
             v-if="prediction" 
-            class="shadow-sm h-100 result-card"
-            border-variant="primary"
+            class="glass-card result-card h-100"
           >
-            <BCardBody>
-              <h2 class="h4 mb-4 text-center">Resultado de la Clasificación</h2>
+            <BCardBody class="p-4">
+              <h2 class="h3 mb-4 text-center card-title">Resultado de la Clasificación</h2>
               
               <div class="text-center mb-4">
                 <div class="prediction-badge">
-                  <BIcon icon="gem" scale="2"></BIcon>
-                  <h3 class="mt-3">{{ prediction.predicted_group }}</h3>
+                  <div class="gem-icon-container">
+                    <BIcon icon="gem" class="gem-icon"></BIcon>
+                  </div>
+                  <h3 class="mt-3 prediction-title">{{ prediction.predicted_group }}</h3>
+                  <div class="prediction-subtitle">Grupo Químico</div>
                 </div>
               </div>
               
-              <BTable 
-                striped 
-                hover 
-                responsive
-                :items="predictionItems"
-                :fields="predictionFields"
-              ></BTable>
+              <div class="result-table-container">
+                <BTable 
+                  striped 
+                  hover 
+                  responsive
+                  :items="predictionItems"
+                  :fields="predictionFields"
+                  class="result-table"
+                ></BTable>
+              </div>
             </BCardBody>
           </BCard>
           
-          <div v-else class="h-100 d-flex flex-column justify-content-center align-items-center text-center info-panel">
-            <BIcon icon="info-circle" scale="3" variant="primary" class="mb-3"></BIcon>
-            <h3 class="h4 mb-3">Información de Clasificación</h3>
-            <p class="lead">
+          <div v-else class="glass-card h-100 d-flex flex-column justify-content-center align-items-center text-center info-panel p-4">
+            <div class="info-icon-container mb-4">
+              <BIcon icon="info-circle" class="info-icon"></BIcon>
+            </div>
+            <h3 class="h3 mb-3 card-title">Instrucciones</h3>
+            <p class="text-secondary mb-4">
               Completa el formulario con las propiedades del mineral para obtener la clasificación de su grupo químico.
             </p>
             <div class="tips-box mt-2">
-              <h4 class="h5 mb-2">Consejos útiles:</h4>
-              <ul class="text-start">
-                <li>La gravedad específica es la relación entre la densidad del mineral y la del agua.</li>
-                <li>La dureza de Mohs va de 1 (talco) a 10 (diamante).</li>
-                <li>El índice de refracción mide cómo la luz se dobla al pasar por el mineral.</li>
+              <h4 class="h5 mb-3">Consejos útiles:</h4>
+              <ul class="text-start tip-list">
+                <li>La <strong>gravedad específica</strong> es la relación entre la densidad del mineral y la del agua.</li>
+                <li>La <strong>dureza de Mohs</strong> va de 1 (talco) a 10 (diamante).</li>
+                <li>El <strong>índice de refracción</strong> mide cómo la luz se dobla al pasar por el mineral.</li>
               </ul>
             </div>
           </div>
@@ -186,10 +211,12 @@
         v-model="showError" 
         variant="danger" 
         dismissible 
-        class="mt-3"
+        class="mt-3 error-alert"
       >
-        <BIcon icon="exclamation-triangle-fill" aria-hidden="true"></BIcon>
-        {{ errorMessage }}
+        <div class="d-flex align-items-center">
+          <BIcon icon="exclamation-triangle-fill" aria-hidden="true" class="me-2 flex-shrink-0"></BIcon>
+          <div>{{ errorMessage }}</div>
+        </div>
       </BAlert>
     </BContainer>
   </div>
@@ -316,40 +343,259 @@ export default defineComponent({
 
 <style scoped>
 .predict-page {
-  background-color: #f8f9fa;
-  min-height: calc(100vh - 60px - 100px); /* Considerando altura de navbar y footer */
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.page-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(26, 75, 140, 0.05), transparent 70%),
+              radial-gradient(circle at bottom left, rgba(52, 152, 219, 0.05), transparent 70%);
+  z-index: -1;
+}
+
+.header-section {
+  margin-bottom: 3rem;
 }
 
 .section-title {
-  color: #1a4b8c;
-  font-weight: bold;
+  color: var(--primary-color);
+  letter-spacing: -0.5px;
+}
+
+.accent-line {
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, #1a4b8c, #52a5e0);
+  border-radius: 2px;
+}
+
+.card-title {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.7);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
+}
+
+.form-card {
+  border-top: 5px solid var(--primary-color);
+}
+
+.modern-input {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  background-color: rgba(255, 255, 255, 0.8);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.modern-input:focus {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.15);
+}
+
+.modern-button {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(26, 75, 140, 0.2);
+}
+
+.modern-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(26, 75, 140, 0.3);
+}
+
+.modern-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(26, 75, 140, 0.3);
+}
+
+.modern-button:disabled {
+  background: linear-gradient(135deg, #6c757d 0%, #adb5bd 100%);
+  cursor: not-allowed;
 }
 
 .result-card {
-  background-color: #f8f9fa;
-  transition: transform 0.3s ease;
+  border-top: 5px solid var(--primary-light);
 }
 
 .prediction-badge {
-  background: linear-gradient(135deg, #1a4b8c 0%, #2980b9 100%);
-  color: white;
-  border-radius: 10px;
-  padding: 20px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  border-radius: 16px;
+  padding: 30px 20px;
   display: inline-block;
-  margin-bottom: 15px;
+  box-shadow: 0 10px 25px rgba(26, 75, 140, 0.2);
+  color: white;
+  width: 80%;
+  max-width: 320px;
 }
 
-.tips-box {
-  background-color: rgba(26, 75, 140, 0.1);
+.gem-icon-container {
+  background: rgba(255, 255, 255, 0.2);
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  backdrop-filter: blur(5px);
+}
+
+.gem-icon {
+  font-size: 2rem;
+  color: white;
+}
+
+.prediction-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.prediction-subtitle {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.result-table-container {
+  margin-top: 2rem;
+}
+
+.result-table {
+  border-collapse: separate;
+  border-spacing: 0;
   border-radius: 8px;
-  padding: 15px;
-  margin-top: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+  border: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.result-table th {
+  background-color: rgba(26, 75, 140, 0.05);
+  color: var(--primary-color);
+  font-weight: 600;
+  border-bottom: 2px solid rgba(26, 75, 140, 0.1);
+  padding: 12px 16px;
+}
+
+.result-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+  color: #374151;
 }
 
 .info-panel {
-  background-color: #f8f9fa;
+  padding: 40px 20px;
+}
+
+.info-icon-container {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  box-shadow: 0 6px 16px rgba(26, 75, 140, 0.2);
+}
+
+.info-icon {
+  font-size: 2rem;
+  color: white;
+}
+
+.tips-box {
+  background-color: rgba(26, 75, 140, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+  border-left: 4px solid var(--primary-color);
+  text-align: left;
+  margin: 0 auto;
+  max-width: 90%;
+}
+
+.tip-list {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.tip-list li {
+  position: relative;
+  padding-left: 25px;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.tip-list li:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+}
+
+.error-alert {
   border-radius: 10px;
-  padding: 30px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+}
+
+@media (max-width: 992px) {
+  .prediction-badge {
+    width: 90%;
+  }
+  
+  .tips-box {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-section h1 {
+    font-size: 2rem;
+  }
+  
+  .glass-card {
+    padding: 10px;
+  }
+  
+  .prediction-badge {
+    padding: 20px 15px;
+  }
+  
+  .gem-icon-container, .info-icon-container {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .gem-icon, .info-icon {
+    font-size: 1.5rem;
+  }
 }
 </style> 

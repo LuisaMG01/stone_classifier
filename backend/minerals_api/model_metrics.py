@@ -19,11 +19,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(BASE_DIR, 'src'))
 
 try:
-    from minerals.preprocess import preprocess_data, load_chemical_group_mapping, get_main_element
+    from minerals.preprocess import preprocess_data, load_chemical_group_mapping, get_main_element, filter_classes
 except ImportError as e:
     print(f"Error importando módulos: {str(e)}")
 
-# Cargar el modelo y datos de referencia usando las funciones originales de entrenamiento
+# Cargar el modelo y datos de referencia usando exactamente el mismo preprocesamiento que en train.py
 def load_model_and_data():
     try:
         model_path = os.path.join(BASE_DIR, 'model/crystal_model.pkl')
@@ -46,29 +46,56 @@ def load_model_and_data():
             print(f"Error al cargar el modelo con joblib: {str(e)}")
             model = None
         
-        # Cargar y preprocesar datos
+        # Cargar y preprocesar datos exactamente como en train.py
         try:
+            # ----- REPLICAR EXACTAMENTE EL MISMO PROCESO QUE EN train.py -----
+            
+            # 1. Cargar datos
             df = pd.read_csv(data_path)
             
-            # Aplicar mismo preprocesamiento que en el entrenamiento
-            # Obtener el mapeo de elementos a grupos químicos
+            # 2. Obtener el mapeo de elementos a grupos químicos
             chemical_group_map = load_chemical_group_mapping()
             element_columns = list(chemical_group_map.keys())
             
-            # Obtener el elemento principal para cada muestra
+            # 3. Obtener el elemento principal para cada muestra
             df["Element"] = df[element_columns].apply(
                 lambda row: get_main_element(row, element_columns), axis=1
             )
             
-            # Asignar grupo químico
+            # 4. Asignar grupo químico
             df["Chemical Group"] = df["Element"].map(chemical_group_map)
             
-            # Preprocesar datos exactamente como en el entrenamiento
+            # 5. Eliminar grupos químicos específicos
+            df = df[~df["Chemical Group"].isin(["Alkaline Earth Metal", "Transition Metal"])]
+            
+            # 6. Agrupar clases raras
+            group_counts = df["Chemical Group"].value_counts()
+            rare_groups = group_counts[group_counts < 10].index
+            df["Chemical Group"] = df["Chemical Group"].apply(
+                lambda x: "Rare" if x in rare_groups else x
+            )
+            
+            # 7. Submuestreo de la clase dominante "Nonmetal"
+            df_nonmetal = df[df["Chemical Group"] == "Nonmetal"].sample(n=300, random_state=42)
+            df_rest = df[df["Chemical Group"] != "Nonmetal"]
+            df = pd.concat([df_nonmetal, df_rest], ignore_index=True)
+            
+            # 8. Filtrar clases con muy pocas muestras
+            df = filter_classes(df, target_col="Chemical Group", min_samples=10)
+            
+            # 9. Preprocesar datos para el modelo
             X, y = preprocess_data(df)
+            
+            # Nota: No aplicamos SMOTE en esta fase porque en train.py
+            # solo se aplicó a los datos de entrenamiento, no a todo el conjunto.
+            # El modelo ya considera el desbalance con class_weight="balanced"
             
             return model, X, y
         except Exception as e:
             print(f"Error al cargar/preprocesar datos: {str(e)}")
+            print(f"Detalles del error: {e}")
+            import traceback
+            traceback.print_exc()
             return model, None, None
             
     except Exception as e:

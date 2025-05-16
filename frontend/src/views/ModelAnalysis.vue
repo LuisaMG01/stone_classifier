@@ -1,6 +1,21 @@
 <template>
   <div class="model-analysis-page">
     <div class="page-background"></div>
+    
+    <!-- Modal de carga -->
+    <div v-if="isLoading" class="loading-modal">
+      <div class="loading-modal-content">
+        <div class="loading-animation">
+          <BSpinner variant="primary" label="Cargando..." class="loading-spinner"></BSpinner>
+          <svg class="loading-circle" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" />
+          </svg>
+        </div>
+        <h3 class="mt-4 loading-title">Cargando datos del modelo</h3>
+        <p class="text-secondary loading-subtitle">Preparando visualizaciones y métricas...</p>
+      </div>
+    </div>
+    
     <BContainer fluid class="py-5 px-md-5">
       <div class="header-section text-center mb-5">
         <h1 class="display-4 mb-3 section-title fw-bold">Análisis del Modelo</h1>
@@ -200,9 +215,10 @@ export default defineComponent({
     const pcaData = ref<MetricsData | null>(null);
     const modelStats = ref<ModelStats | null>(null);
     
-    // Estado para errores
+    // Estado para errores y carga
     const errorMessage = ref('');
     const showError = ref(false);
+    const isLoading = ref(true);
     
     // Gráficos instanciados
     const charts = ref<{[key: string]: Chart | null}>({
@@ -296,6 +312,8 @@ export default defineComponent({
     
     // Cargar datos y crear gráficos
     const loadData = async () => {
+      isLoading.value = true;
+      
       try {
         // Obtener todos los datos en paralelo
         const [
@@ -327,6 +345,11 @@ export default defineComponent({
           ? error.message 
           : 'Ha ocurrido un error al cargar los datos del modelo';
         showError.value = true;
+      } finally {
+        // Pequeño retraso para asegurar que las gráficas se hayan renderizado
+        setTimeout(() => {
+          isLoading.value = false;
+        }, 800);
       }
     };
     
@@ -718,6 +741,7 @@ export default defineComponent({
       pcaChart,
       errorMessage,
       showError,
+      isLoading,
       pcaVarianceExplained,
       modelStats,
       globalMetricsFields,
@@ -984,6 +1008,95 @@ export default defineComponent({
   .confusion-matrix-container {
     min-height: 450px;
     padding: 12px;
+  }
+}
+
+/* Estilos para el modal de carga */
+.loading-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-modal-content {
+  text-align: center;
+  padding: 2rem;
+  max-width: 400px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.1);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.loading-animation {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+}
+
+.loading-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3rem;
+  height: 3rem;
+}
+
+.loading-circle {
+  width: 100%;
+  height: 100%;
+  animation: rotate 2s linear infinite;
+}
+
+.loading-circle circle {
+  fill: none;
+  stroke: #1a4b8c;
+  stroke-width: 3;
+  stroke-dasharray: 150, 200;
+  stroke-dashoffset: 0;
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+  opacity: 0.7;
+}
+
+.loading-title {
+  color: var(--primary-color);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.loading-subtitle {
+  font-size: 0.95rem;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 200;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 200;
+    stroke-dashoffset: -125;
   }
 }
 </style> 
