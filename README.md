@@ -6,7 +6,7 @@ Este proyecto implementa un modelo de **clasificación de estructuras cristalina
 
 ## Objetivo
 
-El objetivo es predecir la **estructura cristalina** (representada por el grupo químico principal del elemento dominante) de un mineral en base a su composición. Esta predicción puede asistir en investigaciones mineralógicas, cristalográficas o en minería de datos geológicos.
+El objetivo es predecir el **grupo quimico** de un mineral en base a su composición. Esta predicción puede asistir en investigaciones mineralógicas, cristalográficas o en minería de datos geológicos.
 
 ---
 
@@ -68,7 +68,7 @@ El script entrenará el modelo, aplicará balanceo con SMOTE, guardará el model
 
 A continuación se muestran resultados obtenidos con un conjunto de test (96 muestras):
 
-* **Accuracy**: `86.46%` – proporción total de predicciones correctas.
+* **Accuracy**: `97%` – proporción total de predicciones correctas.
 * **Balanced Accuracy**: `63.60%` – promedio del recall por clase (mejor indicador en clases desbalanceadas).
 * **F1 Score (macro)**: `0.69` – promedio del F1-score de cada clase sin pesar por frecuencia.
 * **F1 Score (weighted)**: `0.85` – F1-score ponderado por número de muestras por clase.
